@@ -1,0 +1,37 @@
+import numpy as np
+import pandas as pd
+
+def generate_high_sd_rmsd(total_time=100.0, interval=0.1):
+    """
+    Generates RMSD trajectory data with increased standard deviation.
+    """
+    time = np.arange(0, total_time + interval, interval)
+    n_points = len(time)
+    np.random.seed(42)  # For reproducible results
+
+    # Increase noise levels (Standard Deviation factors)
+    # Baseline + Periodicity + Random Noise
+    rmsd_phd2 = 0.85 + 0.15 * np.sin(time/5) + 0.12 * np.random.randn(n_points)
+    rmsd_phd3 = 1.25 + 0.20 * np.cos(time/7) + 0.22 * np.random.randn(n_points)
+    rmsd_phd1 = 1.95 + 0.30 * np.sin(time/10) + 0.38 * np.random.randn(n_points)
+
+    # Apply physical constraints (RMSD >= 0, starting from 0.0)
+    rmsd_phd2 = np.maximum(rmsd_phd2, 0.2); rmsd_phd2[0] = 0.0
+    rmsd_phd3 = np.maximum(rmsd_phd3, 0.3); rmsd_phd3[0] = 0.0
+    rmsd_phd1 = np.maximum(rmsd_phd1, 0.4); rmsd_phd1[0] = 0.0
+
+    # Create DataFrame
+    df = pd.DataFrame({
+        'Time_ns': np.round(time, 1),
+        'PHD1_RMSD_A': np.round(rmsd_phd1, 3),
+        'PHD2_RMSD_A': np.round(rmsd_phd2, 3),
+        'PHD3_RMSD_A': np.round(rmsd_phd3, 3)
+    })
+    
+    return df
+
+# Main execution
+if __name__ == "__main__":
+    df = generate_high_sd_rmsd()
+    df.to_csv('PHD_CHI_RMSD_High_SD.csv', index=False)
+    print("Successfully saved 1,001 high-resolution data points to CSV.")
